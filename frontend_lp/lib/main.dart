@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_lp/pantalla_inicial.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Lock - In',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -55,7 +56,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-
+  final _formKey = GlobalKey<FormState>();
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -76,15 +77,12 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
+      // appBar: AppBar(
+      //   // TRY THIS: Try changing the color here to a specific color (to
+      //   // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+      //   // change color while the other colors stay the same.
+
+      // ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -104,10 +102,71 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: .center,
           children: [
-            const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Lock-In',
+              style: TextStyle(
+                color: Colors.blueAccent,
+                fontSize: 28.0,
+                fontWeight: FontWeight.w900, // Letra muy gruesa
+              ),
+            ),
+            const Text(
+              'Inicia sesión para continuar',
+              style: TextStyle(color: Colors.blueGrey, fontSize: 20.0),
+            ),
+
+            Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 160.0,
+                  vertical: 20,
+                ),
+                child: Column(
+                  spacing: 18,
+                  mainAxisAlignment: .center,
+                  children: [
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: "Correo electronico",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Contraseña',
+                      ),
+                      obscureText: true,
+                    ),
+
+                    ElevatedButton(
+                      onPressed: () {
+                        print("Boton Iniciar");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PantallaInicial(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text("Iniciar Sesión"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            ElevatedButton(
+              onPressed: () {
+                print("Boton Registrar");
+              },
+              style: ElevatedButton.styleFrom(foregroundColor: Colors.indigo),
+              child: const Text("¿No tienes cuenta? Regístrate"),
             ),
           ],
         ),
