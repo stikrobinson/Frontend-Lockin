@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_lp/pantalla_inicial.dart';
+import 'package:frontend_lp/MenuInicial.dart';
 
 void main() {
   runApp(const MyApp());
@@ -143,10 +143,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     ElevatedButton(
                       onPressed: () {
                         print("Boton Iniciar");
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PantallaInicial(),
+                            builder: (context) => MenuInicial(),
                           ),
                         );
                       },
