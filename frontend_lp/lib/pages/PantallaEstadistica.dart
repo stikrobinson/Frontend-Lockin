@@ -5,15 +5,14 @@ class PantallaEstadistica extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos un Container para dar ese color de fondo azul claro suave de la imagen
     return Container(
-      color: const Color(0xFFF0F4FF), // Color de fondo suave
+      color: const Color(0xFFF0F4FF), // Color de fondo base
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Títulos Superiores ---
+            // Sección: Encabezado
             const Text(
               "Mi Progreso",
               style: TextStyle(
@@ -25,22 +24,25 @@ class PantallaEstadistica extends StatelessWidget {
             const SizedBox(height: 4),
             const Text(
               "Resumen completo de tu enfoque",
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
             ),
             const SizedBox(height: 20),
 
-            // --- TARJETA 1: Perfil Principal ---
+            // Sección: Tarjeta de Perfil
             _buildProfileCard(),
 
             const SizedBox(height: 16),
 
-            // --- TARJETA 2: Impacto en la comunidad ---
+            // Sección: Impacto Comunitario
             _buildImpactCard(),
 
             const SizedBox(height: 16),
 
-            // --- GRILLA DE ESTADÍSTICAS (4 tarjetas pequeñas) ---
-            // Fila 1
+            // Sección: Grilla de métricas (KPIs)
+            // Fila 1 de tarjetas
             Row(
               children: [
                 Expanded(
@@ -63,7 +65,7 @@ class PantallaEstadistica extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Fila 2
+            // Fila 2 de tarjetas
             Row(
               children: [
                 Expanded(
@@ -77,7 +79,7 @@ class PantallaEstadistica extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildSmallStatCard(
-                    icon: Icons.flash_on, // Icono de rayo/bloqueo
+                    icon: Icons.flash_on,
                     color: Colors.purple,
                     value: "47",
                     label: "Bloqueadas",
@@ -88,27 +90,25 @@ class PantallaEstadistica extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // --- TARJETA INFERIOR: Progreso Detallado ---
+            // Sección: Progreso Detallado (Bottom Card)
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: ListTile(
-                leading: Icon(Icons.trending_up, color: Colors.blueAccent),
-                title: Text(
+                leading: const Icon(Icons.trending_up, color: Colors.blueAccent),
+                title: const Text(
                   "Progreso Detallado",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text("Productividad General"),
-                trailing: Text(
+                subtitle: const Text("Productividad General"),
+                trailing: const Text(
                   "78%",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ),
-
-            // Espacio extra al final para que no choque con el navigation bar
+            
+            // Espaciado inferior para evitar solapamiento con el BottomNavigationBar
             const SizedBox(height: 20),
           ],
         ),
@@ -116,7 +116,7 @@ class PantallaEstadistica extends StatelessWidget {
     );
   }
 
-  // --- WIDGET AUXILIAR: Tarjeta de Perfil ---
+  // Widget constructor para la tarjeta de perfil
   Widget _buildProfileCard() {
     return Card(
       elevation: 4,
@@ -125,7 +125,7 @@ class PantallaEstadistica extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Avatar con Badge "Elite"
+            // Avatar y Badge
             Stack(
               alignment: Alignment.topCenter,
               children: [
@@ -134,35 +134,11 @@ class PantallaEstadistica extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.blue.shade100,
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.black54,
-                    ),
-                    // Aquí iría la imagen: backgroundImage: AssetImage('assets/avatar.png'),
+                    child: const Icon(Icons.person, size: 50, color: Colors.black54),
+                    // TODO: Reemplazar con imagen dinámica o de red
                   ),
                 ),
-                Positioned(
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent, // Color del badge
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      "Elite",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+          
               ],
             ),
             const SizedBox(height: 12),
@@ -173,59 +149,37 @@ class PantallaEstadistica extends StatelessWidget {
             const SizedBox(height: 4),
             const Text(
               "Nivel de Progreso: 83%",
-              style: TextStyle(
-                color: Colors.blueAccent,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 20),
-
-            // Botones
+            
+            // Botones de acción
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                        // Acción para compartir en comunidad
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Colors.purpleAccent, // Color parecido a la imagen
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      backgroundColor: Colors.purpleAccent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text(
-                      "Compartir en Comunidad",
-                      style: TextStyle(fontSize: 12, color: Colors.white),
-                    ),
+                    child: const Text("Compartir en Comunidad", style: TextStyle(fontSize: 12, color: Colors.white)),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.blueAccent),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: const Text(
-                      "Compartir Afuera",
-                      style: TextStyle(fontSize: 12, color: Colors.blueAccent),
-                    ),
-                  ),
-                ),
+                
               ],
-            ),
+            )
           ],
         ),
       ),
     );
   }
 
-  // --- WIDGET AUXILIAR: Tarjeta de Impacto ---
+  // Widget constructor para la tarjeta de impacto
   Widget _buildImpactCard() {
     return Card(
       elevation: 3,
@@ -236,15 +190,9 @@ class PantallaEstadistica extends StatelessWidget {
           children: [
             Row(
               children: const [
-                Icon(Icons.people_outline, color: Colors.grey, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  "Impacto en la Comunidad",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black54,
-                  ),
-                ),
+                 Icon(Icons.people_outline, color: Colors.grey, size: 20),
+                 SizedBox(width: 8),
+                 Text("Impacto en la Comunidad", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
               ],
             ),
             const SizedBox(height: 16),
@@ -253,39 +201,15 @@ class PantallaEstadistica extends StatelessWidget {
               children: [
                 Column(
                   children: const [
-                    Text(
-                      "8",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.purple,
-                      ),
-                    ),
-                    Text(
-                      "Personas inspiradas",
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
+                    Text("8", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.purple)),
+                    Text("Personas inspiradas", style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
-                Container(
-                  height: 30,
-                  width: 1,
-                  color: Colors.grey.shade300,
-                ), // Separador vertical
+                Container(height: 30, width: 1, color: Colors.grey.shade300),
                 Column(
                   children: const [
-                    Text(
-                      "15",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    Text(
-                      "Apoyo recibido",
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
+                    Text("15", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
+                    Text("Apoyo recibido", style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ],
@@ -295,14 +219,14 @@ class PantallaEstadistica extends StatelessWidget {
               "Tu progreso ha motivado a otros miembros de la comunidad",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: Colors.blueGrey),
-            ),
+            )
           ],
         ),
       ),
     );
   }
 
-  // --- WIDGET AUXILIAR: Tarjeta Pequeña de Estadística ---
+  // Widget reutilizable para métricas individuales
   Widget _buildSmallStatCard({
     required IconData icon,
     required Color color,
