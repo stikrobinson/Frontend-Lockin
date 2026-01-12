@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 class PantallaInicial extends StatelessWidget {
   @override
@@ -35,10 +36,53 @@ class PantallaInicial extends StatelessWidget {
                   ),
                   child: const Text("Compartir tu Progreso"),
                 ),
-                Placeholder(
-                  fallbackWidth: 40.0,
-                  fallbackHeight: 40.0,
-                ), //PlaceHolder para los datos estadisticos
+                Row(
+                  children: [
+                    Expanded(flex: 2, child: Container(color: Colors.white)),
+                    Column(
+                      spacing: 10,
+                      children: [
+                        CircularPercentIndicator(
+                          radius: 60.0,
+                          lineWidth: 5.0,
+                          percent: 1.0,
+                          center: Text("100%"),
+                          progressColor: Colors.green,
+                        ),
+                        Text("Productividad"),
+                      ],
+                    ),
+                    Expanded(flex: 2, child: Container(color: Colors.white)),
+                    Column(
+                      spacing: 10,
+                      children: [
+                        CircularPercentIndicator(
+                          radius: 60.0,
+                          lineWidth: 5.0,
+                          percent: 1.0,
+                          center: Text("100%"),
+                          progressColor: Colors.green,
+                        ),
+                        Text("Productividad"),
+                      ],
+                    ),
+                    Expanded(flex: 2, child: Container(color: Colors.white)),
+                    Column(
+                      spacing: 10,
+                      children: [
+                        CircularPercentIndicator(
+                          radius: 60.0,
+                          lineWidth: 5.0,
+                          percent: 1.0,
+                          center: Text("100%"),
+                          progressColor: Colors.green,
+                        ),
+                        Text("Productividad"),
+                      ],
+                    ),
+                    Expanded(flex: 2, child: Container(color: Colors.white)),
+                  ],
+                ),
               ],
             ),
           ),
