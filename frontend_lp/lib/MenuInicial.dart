@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_lp/pages/PantallaComunidad.dart';
 import 'package:frontend_lp/pages/PantallaEstadistica.dart';
-import 'package:frontend_lp/MenuInicial.dart';
 import 'package:frontend_lp/pages/PantallaInicial.dart';
 import 'package:frontend_lp/pages/PantallaObjetivo.dart';
 import 'package:frontend_lp/pages/PantallaSesion.dart';
@@ -21,7 +20,8 @@ class _HomePageState extends State<MenuInicial> {
       _selectedIndex = index;
     });
   }
-  final List<String> _titulos =[
+
+  final List<String> _titulos = [
     "Inicio",
     "Comunidad",
     "Sesion de enfoque",
