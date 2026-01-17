@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_lp/MenuInicial.dart';
 import 'package:frontend_lp/PantallaRegistro.dart';
+import 'services/auth_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -57,6 +58,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _userController =
+      TextEditingController(); // Para el usuario
+  final TextEditingController _passController =
+      TextEditingController(); // Para la contraseña
+  final AuthService _authService = AuthService(); // Instancia de tu servicio
 
   @override
   Widget build(BuildContext context) {
@@ -117,12 +123,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: .center,
                   children: [
                     TextFormField(
+                      controller: _userController,
                       decoration: InputDecoration(
-                        labelText: "Correo electronico",
+                        labelText: "Usuario",
                         border: OutlineInputBorder(),
                       ),
                     ),
                     TextFormField(
+                      controller: _passController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'Contraseña',
@@ -131,15 +139,44 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
 
                     ElevatedButton(
-                      onPressed: () {
-                        print("Boton Iniciar");
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MenuInicial(),
-                          ),
-                          (Route<dynamic> route) => false,
+                      onPressed: () async {
+                        print("Enviando Datos .. ");
+                        bool loginCorrecto = await _authService.login(
+                          _userController.text,
+                          _passController.text,
                         );
+                        if (loginCorrecto) {
+                          if (!mounted) return;
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MenuInicial(),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        } else {
+                          if (!mounted) return;
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Error de Ingreso"),
+                                content: const Text(
+                                  "El usuario o la contraseña son incorrectos.",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: const Text("Aceptar"),
+                                    onPressed: () {
+                                      // Cerrar la alerta
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,

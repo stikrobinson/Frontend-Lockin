@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_lp/MenuInicial.dart';
 import 'package:frontend_lp/main.dart';
+import 'services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,6 +11,13 @@ class RegisterPage extends StatefulWidget {
 }
 
 class Pantallaregistro extends State<RegisterPage> {
+  final TextEditingController _userController =
+      TextEditingController(); // Para el usuario
+  final AuthService _authService = AuthService();
+  final TextEditingController _emailController =
+      TextEditingController(); // Para el email
+  final TextEditingController _passController = TextEditingController();
+  final TextEditingController _nombreController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -44,18 +52,28 @@ class Pantallaregistro extends State<RegisterPage> {
                   mainAxisAlignment: .center,
                   children: [
                     TextFormField(
+                      controller: _userController,
+                      decoration: InputDecoration(
+                        labelText: "Usuario",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    TextFormField(
+                      controller: _nombreController,
                       decoration: InputDecoration(
                         labelText: "Nombre",
                         border: OutlineInputBorder(),
                       ),
                     ),
                     TextFormField(
+                      controller: _emailController,
                       decoration: InputDecoration(
                         labelText: "Correo electronico",
                         border: OutlineInputBorder(),
                       ),
                     ),
                     TextFormField(
+                      controller: _passController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'Contraseña',
@@ -64,15 +82,44 @@ class Pantallaregistro extends State<RegisterPage> {
                     ),
 
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         print("Boton Iniciar");
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MenuInicial(),
-                          ),
-                          (Route<dynamic> route) => false,
+                        bool RegistroCorrecto = await _authService.register(
+                          _userController.text,
+                          _emailController.text,
+                          _passController.text,
+                          _nombreController.text,
                         );
+                        if (RegistroCorrecto) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MenuInicial(),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Error de Resgistro"),
+                                content: const Text(
+                                  "El usuario o la contraseña son invalidos o existe un error en el sistema.",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: const Text("Aceptar"),
+                                    onPressed: () {
+                                      // Cerrar la alerta
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
