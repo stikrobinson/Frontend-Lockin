@@ -1,18 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../services/estadistica_service.dart'; // <--- Import actualizado
 
-class PantallaEstadistica extends StatelessWidget {
+class PantallaEstadistica extends StatefulWidget {
   const PantallaEstadistica({Key? key}) : super(key: key);
 
   @override
+  State<PantallaEstadistica> createState() => _PantallaEstadisticaState();
+}
+
+class _PantallaEstadisticaState extends State<PantallaEstadistica> {
+  
+  final EstadisticaService _estadisticaService = EstadisticaService();
+  final _storage = const FlutterSecureStorage();
+  
+  bool _cargando = true;
+  String _nombreUsuario = "Usuario";
+  String _nombre="Nombre";
+  Map<String, dynamic> _datos = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos();
+  }
+
+  Future<void> _cargarDatos() async {
+    String? idStr = await _storage.read(key: 'user_id');
+    String? userStr = await _storage.read(key: 'username');
+    String? nomStr = await _storage.read (key: 'nombre');
+    print(nomStr);
+    if (userStr != null) _nombreUsuario = userStr;
+    if (nomStr != null) _nombre = nomStr;
+    print(_nombre);
+
+    if (idStr != null) {
+      // Llamada al servicio con el nombre correcto
+      final datosTraidos = await _estadisticaService.getEstadisticasPorUsuario(idStr);
+      if (datosTraidos != null) {
+        _datos = datosTraidos;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _cargando = false;
+      });
+    }
+  }
+
+  // --- Lógica de Porcentaje ---
+  String _obtenerPorcentaje() {
+    int total = _datos['Total de Objetivos'] ?? 1;
+    int completados = _datos['Total de Completados'] ?? 0;
+    if (total == 0) return "0%";
+    return "${((completados / total) * 100).toStringAsFixed(0)}%";
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_cargando) {
+      return Container(
+        color: const Color(0xFFF0F4FF),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Container(
-      color: const Color(0xFFF0F4FF), // Color de fondo base
+      color: const Color(0xFFF0F4FF),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Sección: Encabezado
             const Text(
               "Mi Progreso",
               style: TextStyle(
@@ -28,25 +88,22 @@ class PantallaEstadistica extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Sección: Tarjeta de Perfil
             _buildProfileCard(),
 
             const SizedBox(height: 16),
 
-            // Sección: Impacto Comunitario
             _buildImpactCard(),
 
             const SizedBox(height: 16),
 
-            // Sección: Grilla de métricas (KPIs)
-            // Fila 1 de tarjetas
+            // Fila 1
             Row(
               children: [
                 Expanded(
                   child: _buildSmallStatCard(
                     icon: Icons.check_circle_outline,
                     color: Colors.blue,
-                    value: "12",
+                    value: "12", 
                     label: "Días consecutivos",
                   ),
                 ),
@@ -55,21 +112,21 @@ class PantallaEstadistica extends StatelessWidget {
                   child: _buildSmallStatCard(
                     icon: Icons.access_time,
                     color: Colors.green,
-                    value: "20h",
+                    value: "${(_datos['Horas Totales'] ?? 0).toStringAsFixed(1)}h",
                     label: "Tiempo total",
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            // Fila 2 de tarjetas
+            // Fila 2
             Row(
               children: [
                 Expanded(
                   child: _buildSmallStatCard(
                     icon: Icons.emoji_events_outlined,
                     color: Colors.orange,
-                    value: "3/5",
+                    value: "${_datos['Total de Completados'] ?? 0}/${_datos['Total de Objetivos'] ?? 0}",
                     label: "Objetivos",
                   ),
                 ),
@@ -78,8 +135,8 @@ class PantallaEstadistica extends StatelessWidget {
                   child: _buildSmallStatCard(
                     icon: Icons.flash_on,
                     color: Colors.purple,
-                    value: "47",
-                    label: "Bloqueadas",
+                    value: "${(_datos['Horas Logeado Totales'] ?? 0).toStringAsFixed(1)}h",
+                    label: "Tiempo Focus",
                   ),
                 ),
               ],
@@ -87,7 +144,6 @@ class PantallaEstadistica extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Sección: Progreso Detallado (Bottom Card)
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -103,14 +159,12 @@ class PantallaEstadistica extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: const Text("Productividad General"),
-                trailing: const Text(
-                  "78%",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                trailing: Text(
+                  _obtenerPorcentaje(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ),
-
-            // Espaciado inferior para evitar solapamiento con el BottomNavigationBar
             const SizedBox(height: 20),
           ],
         ),
@@ -118,7 +172,6 @@ class PantallaEstadistica extends StatelessWidget {
     );
   }
 
-  // Widget constructor para la tarjeta de perfil
   Widget _buildProfileCard() {
     return Card(
       elevation: 4,
@@ -127,7 +180,6 @@ class PantallaEstadistica extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Avatar y Badge
             Stack(
               alignment: Alignment.topCenter,
               children: [
@@ -141,34 +193,29 @@ class PantallaEstadistica extends StatelessWidget {
                       size: 50,
                       color: Colors.black54,
                     ),
-                    // TODO: Reemplazar con imagen dinámica o de red
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
-              "¡Hola, Alex!",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              "¡Hola, $_nombre!",
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            const Text(
-              "Nivel de Progreso: 83%",
-              style: TextStyle(
+            Text(
+              "Nivel de Progreso: ${_obtenerPorcentaje()}",
+              style: const TextStyle(
                 color: Colors.blueAccent,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 20),
-
-            // Botones de acción
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Acción para compartir en comunidad
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purpleAccent,
                       shape: RoundedRectangleBorder(
@@ -191,7 +238,6 @@ class PantallaEstadistica extends StatelessWidget {
     );
   }
 
-  // Widget constructor para la tarjeta de impacto
   Widget _buildImpactCard() {
     return Card(
       elevation: 3,
@@ -218,16 +264,16 @@ class PantallaEstadistica extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Column(
-                  children: const [
+                  children: [
                     Text(
-                      "8",
-                      style: TextStyle(
+                      (_datos['Personas que has inspirado'] ?? 0).toString(),
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.purple,
                       ),
                     ),
-                    Text(
+                    const Text(
                       "Personas inspiradas",
                       style: TextStyle(fontSize: 11, color: Colors.grey),
                     ),
@@ -235,16 +281,16 @@ class PantallaEstadistica extends StatelessWidget {
                 ),
                 Container(height: 30, width: 1, color: Colors.grey.shade300),
                 Column(
-                  children: const [
+                  children: [
                     Text(
-                      "15",
-                      style: TextStyle(
+                      (_datos['Apoyo recibido'] ?? 0).toString(),
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
                       ),
                     ),
-                    Text(
+                    const Text(
                       "Apoyo recibido",
                       style: TextStyle(fontSize: 11, color: Colors.grey),
                     ),
@@ -264,7 +310,6 @@ class PantallaEstadistica extends StatelessWidget {
     );
   }
 
-  // Widget reutilizable para métricas individuales
   Widget _buildSmallStatCard({
     required IconData icon,
     required Color color,

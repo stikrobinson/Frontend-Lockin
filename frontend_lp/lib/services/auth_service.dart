@@ -5,9 +5,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AuthService {
   // Instancia para guardar datos seguros
   final _storage = const FlutterSecureStorage();
+
   final String baseUrl = 'http://127.0.0.1:8000';
 
-  // 1. LOGIN (Para obtener el token)
+  // 1. LOGIN (Modificado para guardar ID y Username)
   Future<bool> login(String username, String password) async {
     final url = Uri.parse(
       '$baseUrl/api/autenticacion/login/',
