@@ -38,6 +38,7 @@ dependencies:
   percent_indicator: ^4.2.5
   http: ^1.6.0
   flutter_secure_storage: ^10.0.0
+  flutter_fgbg: ^0.7.1
 
 dev_dependencies:
   flutter_test:

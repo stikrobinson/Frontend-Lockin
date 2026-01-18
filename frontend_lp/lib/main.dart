@@ -115,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
               key: _formKey,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 160.0,
+                  horizontal: 30.0,
                   vertical: 20,
                 ),
                 child: Column(
