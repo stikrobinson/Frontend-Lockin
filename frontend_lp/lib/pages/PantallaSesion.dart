@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter/material.dart';
+import "package:frontend_lp/services/sesion_service.dart";
 
 final ValueNotifier<bool> activarBoton = ValueNotifier<bool>(false);
+late int? idObjetivo;
+var servicio = SesionService();
 
 class ContadorSesion extends StatefulWidget {
   const ContadorSesion({super.key});
@@ -33,9 +36,7 @@ class _ContadorSesionState extends State<ContadorSesion> {
         _contadorSegundoPlano = Timer.periodic(const Duration(seconds: 1), (
           Timer t,
         ) {
-          setState(() {
-            _tiempoSegundoPlano++;
-          });
+          _tiempoSegundoPlano++;
         });
       } else {
         _contadorSegundoPlano.cancel();
@@ -50,7 +51,12 @@ class _ContadorSesionState extends State<ContadorSesion> {
         _tiempoString = _convertirTiempo();
         _porcentaje += 1 / 1500;
       });
-      if (_tiempo <= 0) {
+      if (_tiempo < 0) {
+        servicio.enviarSesion({
+          "minutos_totales": "25",
+          "minutos_segundo_plano": "${(_tiempoSegundoPlano / 60).round()}",
+          "id_objetivo": "$idObjetivo",
+        });
         _reiniciarContador();
       }
     });
@@ -62,6 +68,7 @@ class _ContadorSesionState extends State<ContadorSesion> {
       _estado = "Pausado";
     });
     _temporizador.cancel();
+    _contadorSegundoPlano.cancel();
     _subscription.cancel();
   }
 
@@ -74,7 +81,16 @@ class _ContadorSesionState extends State<ContadorSesion> {
       _porcentaje = 0.0;
     });
     _temporizador.cancel();
+    _contadorSegundoPlano.cancel();
     _subscription.cancel();
+  }
+
+  @override
+  void dispose() {
+    _temporizador.cancel();
+    _contadorSegundoPlano.cancel();
+    _subscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -153,12 +169,53 @@ class _ContadorSesionState extends State<ContadorSesion> {
   }
 }
 
-class Pantallasesion extends StatelessWidget {
+class Pantallasesion extends StatefulWidget {
+  @override
+  _PantallasesionState createState() => _PantallasesionState();
+}
+
+class _PantallasesionState extends State<Pantallasesion> {
+  // Instancia del contador
   var contador = ContadorSesion();
+
+  // Lista para guardar los objetivos que vienen del servicio
+  List<DropdownMenuEntry<int>> objetivos = [];
+
+  // Variable para saber si estamos esperando a la base de datos
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    activarBoton.value = false;
+    _cargarObjetivos();
+  }
+
+  // Función asíncrona para traer los datos
+  Future<void> _cargarObjetivos() async {
+    try {
+      // 1. Aquí sí podemos usar AWAIT
+      final resultados = await servicio.getObjetivos();
+
+      // 2. Verificamos mounted antes del setState (para evitar el error que tenías antes)
+      if (mounted) {
+        setState(() {
+          objetivos = resultados; // Guardamos los datos
+          isLoading = false; // Dejamos de cargar
+        });
+      }
+    } catch (e) {
+      print("Error cargando objetivos: $e");
+      if (mounted) {
+        setState(() {
+          isLoading = false; // Dejamos de cargar aunque falle
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    activarBoton.value = false;
     return Center(
       child: Column(
         spacing: 10,
@@ -200,31 +257,33 @@ class Pantallasesion extends StatelessWidget {
                       fontSize: 16.0,
                     ),
                   ),
-                  DropdownMenu(
-                    hintText: "Objetivo",
-                    width: 175,
-                    enableSearch: false,
-                    enableFilter: false,
-                    requestFocusOnTap: false,
-                    dropdownMenuEntries: [
-                      DropdownMenuEntry(value: "hola", label: "hola"),
-                      DropdownMenuEntry(value: "chao", label: "chao"),
-                      DropdownMenuEntry(value: "talvez", label: "talvez"),
-                    ],
-                    onSelected: (value) {
-                      activarBoton.value = true;
-                    },
-                  ),
+                  // Renderizado Condicional:
+                  // Si está cargando mostramos spinner, si no, el Dropdown
+                  isLoading
+                      ? CircularProgressIndicator()
+                      : DropdownMenu(
+                          hintText: "Objetivo",
+                          width: 175,
+                          enableSearch: false,
+                          enableFilter: false,
+                          requestFocusOnTap: false,
+                          dropdownMenuEntries:
+                              objetivos, // Usamos la lista cargada
+                          onSelected: (value) {
+                            setState(() {
+                              activarBoton.value = true;
+                              idObjetivo = value;
+                            });
+                          },
+                        ),
                 ],
               ),
             ),
           ),
           Card(
             child: Padding(
-              padding: EdgeInsetsGeometry.symmetric(
-                vertical: 30,
-                horizontal: 135,
-              ),
+              // Corregido: EdgeInsetsGeometry a EdgeInsets
+              padding: EdgeInsets.symmetric(vertical: 30, horizontal: 135),
               child: contador,
             ),
           ),

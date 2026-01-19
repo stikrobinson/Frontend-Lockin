@@ -26,6 +26,15 @@ class AuthService {
 
       // GUARDAR EL TOKEN EN EL CELULAR
       await _storage.write(key: 'auth_token', value: data['token']);
+      await _storage.write(
+        key: 'user_id',
+        value: data['user']['id'].toString(),
+      );
+
+      // 3. Guardamos el Username
+      await _storage.write(key: 'username', value: data['user']['username']);
+
+      await _storage.write(key: 'nombre', value: data['user']['first_name']);
       return true;
     } else {
       return false;
@@ -83,6 +92,15 @@ class AuthService {
 
       // GUARDAR EL TOKEN EN EL CELULAR
       await _storage.write(key: 'auth_token', value: data['token']);
+      await _storage.write(
+        key: 'user_id',
+        value: data['user']['id'].toString(),
+      );
+
+      // 3. Guardamos el Username
+      await _storage.write(key: 'username', value: data['user']['username']);
+
+      await _storage.write(key: 'nombre', value: data['user']['first_name']);
       return true;
     } else {
       return false;
