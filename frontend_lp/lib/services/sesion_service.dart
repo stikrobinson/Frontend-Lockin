@@ -71,7 +71,7 @@ class SesionService {
         print(json);
         for (var objetivo in json) {
           print(objetivo);
-          if (objetivo["id_autor"] == id) {
+          if (objetivo["id_autor"] == id && objetivo["completado"] == false) {
             lista.add(
               DropdownMenuEntry(
                 value: objetivo["id"],
