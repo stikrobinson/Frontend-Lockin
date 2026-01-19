@@ -11,9 +11,13 @@ class Pantallacomunidad extends StatefulWidget {
 class _PantallacomunidadState extends State<Pantallacomunidad> {
   final ComunidadService _comunidadService = ComunidadService();
 
-  // IMPORTANTE: Inicializar con [] para evitar errores de "length called on null"
+  // Lista para almacenar los posts
   List<Map<String, dynamic>> _publicacionesEnriquecidas = [];
   bool _cargando = true;
+
+  // Controladores: SOLO MENSAJE (El título fue eliminado)
+  final TextEditingController _mensajeController = TextEditingController();
+  String _categoriaSeleccionada = "Logro"; 
 
   @override
   void initState() {
@@ -21,7 +25,14 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
     _cargarPublicaciones();
   }
 
-  /// Carga los posts y busca el nombre del autor para cada uno
+  @override
+  void dispose() {
+    // Solo limpiamos el mensaje, el título ya no existe
+    _mensajeController.dispose();
+    super.dispose();
+  }
+
+  // --- 1. LÓGICA PARA LEER POSTS ---
   Future<void> _cargarPublicaciones() async {
     try {
       final listaCruda = await _comunidadService.getAllPost();
@@ -40,14 +51,11 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
 
       for (var post in listaCruda) {
         if (post['id_autor'] == null) continue;
-
         int idAutor = post['id_autor'];
 
-        // Intentamos obtener el nombre, si falla usamos "Usuario ID"
         String? nombrePosible = await _comunidadService.getNombre(idAutor);
         String nombreReal = nombrePosible ?? "Usuario $idAutor";
 
-        // Creamos una copia del post con el nombre real inyectado
         Map<String, dynamic> postConNombre = Map.from(post);
         postConNombre['nombre_autor_real'] = nombreReal;
 
@@ -71,6 +79,124 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
     }
   }
 
+  // --- 2. LÓGICA PARA CREAR POST (POP-UP) ---
+  void _mostrarDialogoPublicar() {
+    // Limpiamos el campo antes de abrir
+    _mensajeController.clear(); 
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Evita cerrar dando clic afuera por error
+      builder: (BuildContext context) {
+        String categoriaLocal = _categoriaSeleccionada;
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Compartir Progreso", style: TextStyle(color: Colors.purple)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // --- YA NO HAY TÍTULO ---
+                    
+                    // Campo Mensaje
+                    TextField(
+                      controller: _mensajeController,
+                      maxLines: 4, // Un poco más alto para escribir mejor
+                      decoration: const InputDecoration(
+                        labelText: "Mensaje",
+                        hintText: "¿Qué lograste hoy?",
+                        border: OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    
+                    // Dropdown Categoría
+                    Row(
+                      children: [
+                        const Text("Categoría: "),
+                        const SizedBox(width: 10),
+                        DropdownButton<String>(
+                          value: categoriaLocal,
+                          items: <String>['Logro', 'Ayuda', 'Motivación', 'General']
+                              .map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setStateDialog(() {
+                              categoriaLocal = newValue!;
+                              _categoriaSeleccionada = newValue;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    // 1. Validar campo
+                    if (_mensajeController.text.isEmpty) {
+                       ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Escribe un mensaje para publicar")),
+                        );
+                        return;
+                    }
+
+                    // Cerrar diálogo y mostrar carga
+                    Navigator.of(context).pop();
+                    setState(() => _cargando = true);
+
+                    // 2. LLAMADA AL SERVICIO (SOLO 2 ARGUMENTOS AHORA)
+                    bool exito = await _comunidadService.enviarPost(
+                      _mensajeController.text, // Solo mensaje
+                      _categoriaSeleccionada,  // Categoría
+                    );
+
+                    // Limpiar controlador
+                    _mensajeController.clear();
+
+                    // 3. Manejar resultado
+                    if (exito) {
+                      await _cargarPublicaciones(); // Recargar lista
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("¡Publicado con éxito!")),
+                        );
+                      }
+                    } else {
+                       if (mounted) {
+                         setState(() => _cargando = false);
+                         ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Error al publicar"), backgroundColor: Colors.red),
+                        );
+                       }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.purpleAccent),
+                  child: const Text("Publicar", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // --- 3. UI PRINCIPAL ---
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -80,16 +206,12 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
           const SizedBox(height: 20),
           const Text(
             "Comunidad",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.purple,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.purple),
           ),
           const Text("Apoyo mutuo sin toxicidad"),
           const SizedBox(height: 10),
 
-          // Filtros
+          // Filtros (Visuales)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -101,10 +223,7 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
                 const SizedBox(width: 6),
                 ElevatedButton(onPressed: () {}, child: const Text("Ayuda")),
                 const SizedBox(width: 6),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text("Motivación"),
-                ),
+                ElevatedButton(onPressed: () {}, child: const Text("Motivación")),
                 const SizedBox(width: 10),
               ],
             ),
@@ -126,12 +245,25 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
             )
           else
             ..._publicacionesEnriquecidas.map((post) {
+              
+              // Lógica de contenido:
+              // Si el backend envía "mensaje", usamos eso.
+              // Si envía "nombre" y "descripcion" (antiguo), los unimos.
+              String contenido = "";
+              if (post['mensaje'] != null) {
+                contenido = post['mensaje'];
+              } else {
+                contenido = "${post['nombre'] ?? ''}\n\n${post['descripcion'] ?? ''}";
+              }
+
+              String fechaStr = post['fecha_publicacion'] ?? post['caducidad'] ?? "";
+
               return CardPublicaciones(
                 post['nombre_autor_real'] ?? "Desconocido",
-                "${post['nombre']}\n\n${post['descripcion']}",
-                post['categoria'] ?? "General",
-                0,
-                DateTime.tryParse(post['caducidad']) ?? DateTime.now(),
+                contenido.trim(), 
+                post['categoria'] ?? post['etiqueta'] ?? "General",
+                0, 
+                DateTime.tryParse(fechaStr) ?? DateTime.now(),
               );
             }).toList(),
 
@@ -143,18 +275,13 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
               const SizedBox(width: 20),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _mostrarDialogoPublicar, // Abre el Pop-up corregido
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purpleAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
-                    "Compartir mi Progreso",
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
+                  child: const Text("Compartir mi Progreso", style: TextStyle(fontSize: 12, color: Colors.white)),
                 ),
               ),
               const SizedBox(width: 20),
@@ -166,17 +293,11 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
     );
   }
 
-  Widget CardPublicaciones(
-    String usuario,
-    String mensaje,
-    String categoria,
-    int corazones,
-    DateTime fecha,
-  ) {
-    // Lógica visual de tiempo
+  // --- 4. WIDGET DE TARJETA INDIVIDUAL ---
+  Widget CardPublicaciones(String usuario, String mensaje, String categoria, int corazones, DateTime fecha) {
     final horasPasadas = DateTime.now().difference(fecha).inHours;
-    final tiempoTexto = horasPasadas > 24
-        ? "${(horasPasadas / 24).round()} d"
+    final tiempoTexto = horasPasadas > 24 
+        ? "${(horasPasadas / 24).round()} d" 
         : "$horasPasadas h";
 
     return Card(
@@ -194,32 +315,17 @@ class _PantallacomunidadState extends State<Pantallacomunidad> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      usuario,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      tiempoTexto,
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
+                    Text(usuario, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(tiempoTexto, style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: const Color.fromARGB(255, 131, 205, 240),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    categoria,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: Text(categoria, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

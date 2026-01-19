@@ -13,7 +13,7 @@ class ComunidadService {
   // Recibe el userId como String porque así lo guardamos en el storage
   Future<List<dynamic>?> getAllPost() async {
     
-    final url = Uri.parse('$baseUrl/api/objetivo/data'); 
+    final url = Uri.parse('$baseUrl/api/post/data'); 
 
     // Recuperamos el token para tener permiso
     String? token = await _storage.read(key: 'auth_token');
@@ -81,4 +81,46 @@ class ComunidadService {
     }
   }
 
+  Future<bool> enviarPost(String mensaje, String categoria) async {
+   
+    final url = Uri.parse('$baseUrl/api/post/create'); 
+
+    // 2. Recuperar Token e ID de Usuario
+    String? token = await _storage.read(key: 'auth_token');
+    print(token);
+    
+    String? userIdStr = await _storage.read(key: 'user_id');
+    print(userIdStr);
+    if (token == null || userIdStr == null) {
+      print("Error: Falta token o ID de usuario");
+      return false;
+    }
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+        body: jsonEncode({
+          "mensaje": mensaje,     
+          "etiqueta": categoria,
+          "id_autor": int.parse(userIdStr), // Convertimos el ID a entero
+          "fecha_de_publicacion":DateTime.now().toIso8601String(),         // Valor por defecto
+          
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return true; // Éxito
+      } else {
+        print("Error al publicar: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Error de conexión: $e");
+      return false;
+    }
+  }
 }
