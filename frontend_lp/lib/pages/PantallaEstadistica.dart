@@ -99,14 +99,6 @@ class _PantallaEstadisticaState extends State<PantallaEstadistica> {
             // Fila 1
             Row(
               children: [
-                Expanded(
-                  child: _buildSmallStatCard(
-                    icon: Icons.check_circle_outline,
-                    color: Colors.blue,
-                    value: "12", 
-                    label: "Días consecutivos",
-                  ),
-                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildSmallStatCard(
